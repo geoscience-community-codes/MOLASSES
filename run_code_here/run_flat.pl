@@ -1,7 +1,7 @@
 
 $config_file = "config.flat";
 $plot_file = "plot.gmt.pl";
-$plot_conf = "plot.flat";
+$plot_conf = "plot_conf.flat";
 
 ##### STOP - Do not edit past this line ###########################
 system "date";

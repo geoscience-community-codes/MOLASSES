@@ -1,1 +1,19 @@
 
+MOLASSES uses the memory management software GC. 
+
+The development version of the GC source code now resides on github, along with the downloadable packages. The GC tree itself is at https://github.com/ivmai/bdwgc/. The libatomic_ops tree required by the GC is at https://github.com/ivmai/libatomic_ops/.
+
+To build a working version of the collector, you will need to do something like the following, where D is the absolute path to an installation directory:
+
+cd D
+git clone git://github.com/ivmai/libatomic_ops.git
+git clone git://github.com/ivmai/bdwgc.git
+ln -s  D/libatomic_ops D/bdwgc/libatomic_ops
+cd bdwgc
+autoreconf -vif
+automake --add-missing
+./configure
+make
+
+This will require that you have C and C++ toolchains, git, automake, autoconf, and libtool already installed. The resulting libraries and header files are then stored in MOLASSES/lib and MOLLASSES/include respectively.
+

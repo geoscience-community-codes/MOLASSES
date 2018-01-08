@@ -1,0 +1,45 @@
+#FORMAT:
+#KEYWORD=VALUE
+#
+#-------------------------------------------------------------
+# DESCRIPTION of possible KEYWORDS:
+# INPUT_FILE=xxxx name of input file (expects a grd - a netCDF grid file)
+# OUTPUT_FILE=xxxxx name for output image file (eps file and png file are created)
+# OVERLAY_FILE=xxxxx overlay (name of overlay file for creating the kml file for google earth, this will be a png file) 
+# WEST=30 western map boundary in map units
+# EAST=40 eastern map boundary in map units
+# NORTH=10 northern map boundary in map units
+# SOUTH=30 southern map boundary in map units
+# Be careful, about units! Could be degrees or meters or km, etc.. 
+# GRID_SPACING=0.2 - grid spacing in map units
+# TICK_INTERVAL=1 - Annotate tick mark every TICK_INTERVAL.
+# MAP_SCALE=250000 - set map scale (1:250000)
+# To discover data range read from gmtinfo INPUT_FILE
+# MIN_DATA_VAL=-100 minimum data value
+# MAX_DATA_VAL=100 maximum data value
+# COLOR_INTERVAL=2 - Number of values per color interval (binned)
+# COLOR_SCALE=haxby - name of GMT color scale
+# The following values affect placement of the color bar
+# SCALE_BAR_X=10.0 - x location in cm (from the left positive values go right)
+# SCALE_BAR_Y=-3.0 - y location in cm (from the bottom - positive values go down)
+# SCALE_BAR_LENGTH=5 - length of color bar in cm
+# SCALE_BAR_WIDTH=0.4 - width of color in cm
+# SCALE_BAR_ORIENTATION= h - (v)ertical or (h)orizontal orientation of scale bar
+# SCALE_BAR_UNITS=nT - your data units
+#-------------------------------------------------------------------------
+# EDIT these VALUES based on your DATA
+# Do not change the KEYWORDS
+# Then run perl plot.gmt.pl
+#-------------------------------------------------------------------------
+GRID_FILE=DEMs/flat/flat.asc
+WEST=-5.0
+EAST=1295
+NORTH=1295
+SOUTH=-5.0
+# Now, Units = meters!
+GRID_SPACING=10
+TICK_INTERVAL=50
+# Map scale = 1:2500000
+MAP_SCALE=8000
+COLOR_INTERVAL=1
+COLOR_SCALE=DEMs/GMT_gray.cpt

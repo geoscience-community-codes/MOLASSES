@@ -1,0 +1,96 @@
+# MOLASSES Configuration File
+
+##############
+# Inputs
+##############
+# DEM file name
+DEM_FILE = DEMs/130x130/deg45NW.asc
+VENT_EASTING = 300
+VENT_NORTHING = 1000
+
+# Integer value indicating uncertanty in DEM elevations
+# Default: 0 (no uncertainty)
+# OR a fileneame for a grid of uncertainties that varies from cell to cell
+ELEVATION_UNCERT = 0
+
+# ASCII sptial density grid file (format: eastingf northing spd_value)
+#SPATIAL_DENSITY_FILE = B.density.utm.xyz
+# Grid spacing in meters
+#SPD_GRID_SPACING = 1000
+
+##############
+# Outputs
+##############
+# grid cells inundated with lava (xyz: easting northing lava_thickness (m) )
+ASCII_FLOW_MAP = flow
+
+# grid cells inundated by lava (xyz: easting northing hit_count) 
+ASCII_HIT_MAP = hits
+
+# Total thickness of all grid cells
+#ASCII_TOTAL_THICKNESS_MAP = thickness.xyz
+
+# tiff format maps
+# TIFF_HITMAP = hits.tif
+# LAVA_THICKNESS_MAP = thickness.tif
+# ELEVATION_MAP = paleosurf.tif
+# TOTAL_ELEV_MAP = new_elev.tif
+
+##################
+# Flow Parameters
+##################
+# A grid cell model using a parent-child relationship prevents 
+# backward motion of the lava flow, choose PARENTS=Y. A parent-less model is
+# also possible, choose PARENTS=N.
+PARENTS = Y
+# The residual can be a number (same value for all inundated grid cells)
+# OR a file name for a grid of uncertanty values that varies from 
+# cell to cell (e.g. slope map)
+# Value for lava flow residual (units=m) or file name
+#RESIDUAL =
+
+# For a hazard map, the residual value is chosen between
+# a min and max value, and based on a log-normal distribution,
+# if the log(mean_residual) and log(std_deviation_residual) are set.
+# The min_residual and max_residual are required;
+# the log(mean) and log(std_dev) are optional. If not set,
+# the residual is chosed from a uniform random distribution between
+# the min and max value.
+
+MIN_RESIDUAL = 10
+MAX_RESIDUAL = 10
+#LOG_MEAN_RESIDUAL = 0.38
+#LOG_STD_DEV_RESIDUAL = 0.1
+
+
+#Value for total erupted lava volume (units=cubic meters)
+# For a hazard map, the lava volume is chosen between
+# a min and max value, and based on a log-normal distribution,
+# if the log(mean_volume) and log(std_deviation_volume) are set.
+# The min_volume and max_volume are required;
+# the log(mean) and log(std_dev) are optional. If not set,
+# the volume is chosed from a uniform random distribution between
+# the min and max value.
+#MIN_TOTAL_VOLUME = 1e7
+#MAX_TOTAL_VOLUME = 6e7
+MIN_TOTAL_VOLUME =1200000
+MAX_TOTAL_VOLUME =1200000
+
+#LOG_MEAN_TOTAL_VOLUME = 6.5
+#LOG_STD_DEV_TOTAL_VOLUME = 0.2
+
+# Value for lava pulse volume (cubic meters)
+
+#MIN_PULSE_VOLUME = 1e3
+#MAX_PULSE_VOLUME = 1e4
+MIN_PULSE_VOLUME = 1000
+MAX_PULSE_VOLUME = 1000
+
+########################
+# Simulation Parameters
+########################
+# Number of lava flows to erupt per simulation
+FLOWS = 1
+
+# Number of simulation runs
+RUNS = 1

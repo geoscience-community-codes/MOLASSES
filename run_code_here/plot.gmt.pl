@@ -80,7 +80,7 @@ print "max color bar = $max_color\n";
 #`gmt grdimage $grd -Jx1:$map_scale -R$west/$east/$south/$north -X1i -Y1i -Cdem.cpt -E300 -P -K -V > $out`;
 
 `gmt psxy $in -Jx1:$map_scale -R$west/$east/$south/$north -X1i -Y1i -Ss0.2c -C$lavacpt -Wthinnest,100 -K -P -V > $out`;
-`gmt grdcontour $grd_file -Jx -R -C10 -A5 -Wthinnest,150 -V -K -O >> $out`;
+`gmt grdcontour $grd_file -Jx -R -C5 -A25 -Gn1 -Wthinnest,150 -V -K -O >> $out`;
 `gmt psxy   -R -Jx  -Sc0.1c -Gred -Wthinner,0 -O -K -V <<EOF>> $out
 $ea $no 
 EOF`;

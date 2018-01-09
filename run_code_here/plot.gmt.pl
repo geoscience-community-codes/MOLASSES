@@ -46,13 +46,14 @@ $tick = "a".$tick_int."f".$tick_int/2;
 $Tx = $west + 100;
 $Ty = $south + 100;
 ##################################
-
-$line = <>;
-$line = <>;
+my $flow = open_or_die("<", $in);
+$line = <$flow>;
+$line = <$flow>;
 ($s, $ea, $no, $vol, $pulse, $resid) = split " ", $line;
+print $line;
 
 my $max_color = 0;
-while (<>) {
+while (<$flow>) {
 	unless ($_ =~ /^#/ || $_ =~ /^\n/) {
 	($a, $b, $thick, $elev1, $elev2) = split " ", $_;
 	if ($thick > $max_color) {$max_color = $thick;}
@@ -65,17 +66,17 @@ print "max_color=$max_color\n";
 
 
 $max_color = $resid;
- $max_color *= 2.0;
+$max_color *= 2.0;
 $lavacpt = "lava.cpt";
-`gmt makecpt -Chot -T0/$max_color/.1 -I > $lavacpt`; #CHANGE THIS TO SHOW MORE OR LESS COLORS (rule of thumb = 1.5xResidual)
+print "max color bar = $max_color\n";
 #-E60/50/=/.5 -Nt0.5
 # -E-45/60/.5/.2/.2/100 -Nt0.5
 # -E60/60/=/.5 -Ne0.4
 #`gmt grdgradient $grd -G$int -E25/75/.5/.2/.2/100 -Nt0.5 -V`;
 # MAP_FRAME_TYPE=inside
 
-`gmtset MAP_ANNOT_OFFSET_PRIMARY=2p MAP_FRAME_AXES=WSNE FONT_ANNOT_PRIMARY=8p ` ;
-
+`gmtset MAP_ANNOT_OFFSET_PRIMARY=2p MAP_FRAME_AXES=WSNE FONT_ANNOT_PRIMARY=8p`;
+`gmt makecpt -Chot -T0/$max_color/.1 -I -V > $lavacpt`; #CHANGE THIS TO SHOW MORE OR LESS COLORS (rule of thumb = 1.5xResidual)
 #`gmt grdimage $grd -Jx1:$map_scale -R$west/$east/$south/$north -X1i -Y1i -Cdem.cpt -E300 -P -K -V > $out`;
 
 `gmt psxy $in -Jx1:$map_scale -R$west/$east/$south/$north -X1i -Y1i -Ss0.2c -C$lavacpt -Wthinnest,100 -K -P -V > $out`;
@@ -93,7 +94,7 @@ $lab = sprintf "%.1f", ($max_color/10.0);
 #-T$Tx/$Ty/2c
 `gmt psbasemap -R -Jx -Bx$tick -By$tick  -O -V >> $out`;
 `gmt psconvert $out -A -P -Tg -V`;
-`rm $out lava.cpt`;
+`rm $out $lavacpt`;
 
 sub round {
   $_[0] > 0 ? int($_[0] + .5) : -int(-$_[0] + .5)

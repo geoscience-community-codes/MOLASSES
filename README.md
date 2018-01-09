@@ -42,4 +42,8 @@ MOLASSES can be executed from the 'run_code_here' directory. Within this directo
 	
 	perl run_xxx.pl
 
-where _xxx indicates any name modification to the script.
+where _xxx indicates any name modification to the script. Run this example in the 'run_code_here' directory:
+	
+	perl run_SE-dip.pl
+
+	

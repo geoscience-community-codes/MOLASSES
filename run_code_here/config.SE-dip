@@ -6,8 +6,8 @@
 # DEM file name
 DEM_FILE = DEMs/dipSE/SE-dip_grid.asc
 
-VENT_EASTING = 655
-VENT_NORTHING = 655
+VENT_EASTING = 150
+VENT_NORTHING = 1000
 
 # Integer value indicating uncertanty in DEM elevations
 # Default: 0 (no uncertainty)

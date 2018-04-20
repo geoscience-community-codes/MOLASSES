@@ -142,10 +142,12 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "Usage: %s config-filename\n",argv[0]);
 		return 1;
 	}
-	if (argc == 3) {
+	if (argc >= 2) {
 		start = atoi(argv[2]);
+		fprintf(stderr, "Starting with run #%d\n", start);
 		if (start < 0) start = 0;
 	}
+	fprintf(stderr, "Starting with run #%d\n", start);
 	
 	fprintf(stderr, "Beginning flow simulation...\n");	    
 	In.config_file = argv[1]; 
@@ -212,9 +214,9 @@ int main(int argc, char *argv[]) {
 				Grid);			/* (type=DataCell**)  2D Data Grid */
 		
 		/* Select new vent from spatial density grid 
-		   OR
-		   If a vent coordinate is given, then use this coordinate. 
-		*/
+ * 		   OR
+ * 		   		   If a vent coordinate is given, then use this coordinate. 
+ * 		   		   		*/
 		if (In.spd_file != NULL) {
 			do { 
 				ret = CHOOSE_NEW_VENT(&In, &Vent);
@@ -222,7 +224,7 @@ int main(int argc, char *argv[]) {
 					fprintf (stderr, "\n[MAIN] Error returned from [CHOOSE_NEW_VENT].\nExiting!\n");
 					return 1;
 				}
-				ret = CHECK_VENT_LOCATION(&Vent, DEMmetadata); /*Check for Vent outside of map region*/
+				ret = CHECK_VENT_LOCATION(&Vent, DEMmetadata, Grid); /*Check for Vent outside of map region*/
 				if (ret) {
 					Vent.easting = 0;
 					Vent.northing = 0;
@@ -232,7 +234,7 @@ int main(int argc, char *argv[]) {
 		}
     fprintf (stderr, "[Run: %d] Vent: EASTING: %f\tNorthing: %f\n", run, Vent.easting, Vent.northing);
 		/* Initialize the lava flow data structures and initialize vent cell. 
-		   TODO: try to figure out the maximum size possible for the active list */
+ * 		   TODO: try to figure out the maximum size possible for the active list */
 		CAList = INIT_FLOW(
 		Grid,					/* (type=DataCell**)  2D Data Grid */
 		CAList,				/* type=Automata*) 1D Active Cells List */
@@ -254,8 +256,8 @@ int main(int argc, char *argv[]) {
 		while(volumeRemaining > (double) 0.0) {
     
 			/* vent cell gets a new pulse of lava to distribute 
-			   see file: pulse.c 
-			*/
+ * 			   see file: pulse.c 
+ * 			   			*/
 			if (!(pulseCount % 100))
 				fprintf(stderr, "[R%d]Active Cells: %-3u; Volume Remaining: %10.3f Pulse count: %3u \n",
 				run,			
@@ -284,11 +286,14 @@ int main(int argc, char *argv[]) {
 			&In,					/* (type=Inputs*) Inputs structure */
 			&Vent);				/* (type=VentArr*) Vent Data structure */
 		
-			if (ret < 0) {
+			if (ret) {
 				fprintf (stderr, "[MAIN} Error returned from [DISTRIBUTE].ret=%d.. ", ret);
-				if (run > 0) {
-					fprintf(stderr, "Starting a new run.\n");
-					run--;
+				if (ret < 0) { 
+					if (run > 0) {
+					 fprintf(stderr, "Starting a new run.\n");
+					 run--;
+					}
+					volumeRemaining = 0.0;
 				}
 			}
 		} /* while(volumeRemaining > (double)0.0) */
@@ -327,7 +332,7 @@ int main(int argc, char *argv[]) {
 		DEMmetadata);    /* (type=double*) Metadata array */ 
 		if (ret) fprintf(stdout, "OUTPUT ERROR!\n");
 		
-		if (In.flow_field) { /* reinitialize the data grid */
+		if (In.flow_field) { /* reinitialize the data grid using new dem*/
 			for(i = 0; i < DEMmetadata[4]; i++) {
 				for(j = 0; j < DEMmetadata[2]; j++) {
 					Grid[i][j].dem_elev = Grid[i][j].eff_elev;
@@ -335,6 +340,16 @@ int main(int argc, char *argv[]) {
 					Grid[i][j].active = -1;
 					Grid[i][j].parentcode = 0;
 				}
+			}
+		}
+		else { /* just reinitialize the data grid for new flow */
+			for(i = 0; i < DEMmetadata[4]; i++) {
+				for(j = 0; j < DEMmetadata[2]; j++) {
+					Grid[i][j].eff_elev = Grid[i][j].dem_elev;
+					Grid[i][j].prev_elev = Grid[i][j].dem_elev; 
+					Grid[i][j].active = -1;
+					Grid[i][j].parentcode = 0;
+			 }
 			}
 		}
 	} /* END:  for (run = start; run < (In.runs+start); run++) { */	
@@ -349,8 +364,20 @@ int main(int argc, char *argv[]) {
 		ActiveCounter,   /* (type = unsigned int)  Number of active cells */
 		&Vent,           /* (type=VentArr*) Vent Data structure */
 		DEMmetadata);    /* (type=double*) Metadata array */ 
-
 	if (ret) fprintf(stdout, "Ascii hits OUTPUT ERROR!\n");
+	
+	ret = OUTPUT(
+		run,             /* run number */
+		raster_hits,      /* file output type */
+		&Out,            /* (type=Outputs*) 1D Output parameters structure */
+		&In,             /* (type=Inputs*) 1D Input parameters structure */
+		Grid,            /* (type = DataCell *) Global Data Grid */ 
+		CAList,          /* (type = Automata *) Active Cells List */
+		ActiveCounter,   /* (type = unsigned int)  Number of active cells */
+		&Vent,           /* (type=VentArr*) Vent Data structure */
+		DEMmetadata);    /* (type=double*) Metadata array */ 
+	if (ret) fprintf(stdout, "Raster hits OUTPUT ERROR!\n");
+	
 	if (In.flow_field > 0) {
 		ret = OUTPUT(
 		run,             /* run number */
@@ -377,3 +404,4 @@ int main(int argc, char *argv[]) {
 	}
 	return 0;
 }
+

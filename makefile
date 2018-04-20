@@ -12,6 +12,7 @@ export distribute        = proportional2slope_LJC
 export neighbor_ID       = 4_LJC
 export output            = LJC
 export newvent       = LJC
+export check_vent	=
 # export activate          = LJC
 
 # Linking and compiling variables

@@ -184,44 +184,42 @@ double *geotransform) {
 			sprintf (file, "%s%d", Out->ascii_hits_file, run);
 			out = fopen(file, "w");
 			if (out == NULL) {
-				fprintf(stderr, "Cannot open flow file: file=[%s]:[%s]! Exiting.\n",
+				fprintf(stderr, "Cannot open hits file: file=[%s]:[%s]! Exiting.\n",
 	              file, strerror(errno));
-	    	return 1;
+	    			return 1;
 			}
+
 			for(row=0; row < geotransform[4]; row++) { 
 				for(col=0; col < geotransform[2]; col++) {
 					easting = geotransform[0] + (geotransform[1] * col);
 					northing = geotransform[3] + (geotransform[5] * row);
 					value = (double) grid[row][col].hit_count;
-					if (value) fprintf(out, "\n%0.3f\t%0.3f\t%0.0f", easting, northing, value);
+					if (value > 0) fprintf(out, "\n%0.3f\t%0.3f\t%0.0f", easting, northing, value);
 				}
 			}
 			fflush(out);
 			fclose(out);
-			fprintf(stderr, " ASCII Output file: %s successfully written.\n (x,y,hit count)\n", file);
+			fprintf(stderr, " ASCII Hits file: %s successfully written.\n (x,y,hit count)\n", file);
 		break;
-		
+	
 		case raster_hits :
 			sprintf (file, "%s%d", Out->raster_hits_file, run);
 			out = fopen(file, "w");
 			if (out == NULL) {
 				fprintf(stderr, "Cannot open hits file: file=[%s]:[%s]! Exiting.\n",
 	              file, strerror(errno));
-	    	return 1;
+	    			return 1;
 			}
-			for(row=0; row < geotransform[4]; row++) { 
-				for(col=0; col < geotransform[2]; col++) {
-					easting = geotransform[0] + (geotransform[1] * col);
-					northing = geotransform[3] + (geotransform[5] * row);
-					value = (double) grid[row][col].hit_count;
-					if (value) fprintf(out, "\n%0.3f\t%0.3f\t%0.0f", easting, northing, value);
+			/*Assign Model Data to Data Block*/	
+			k=0; /*Data Counter*/
+			for (i = geotransform[4]; i > 0; i--) { 			/*For each row, TOP DOWN*/
+				for(j=0; j < geotransform[2]; j++) {		/*For each col, Left->Right*/
+						RasterDataF[k++] = (float) (grid[i-1][j].hit_count); 
+					}
 				}
-			}
-			fflush(out);
-			fclose(out);
-			fprintf(stderr, " ASCII Output file: %s successfully written.\n (x,y,hit count)\n", file);
+			raster_double_file = 1;
 		break;
-		
+	
 		case raster_flow : /* Lava Thickness Raster */
 			sprintf (file, "%s%d", Out->raster_flow_file, run);
 			out = fopen(file, "w");

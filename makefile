@@ -19,8 +19,10 @@ export check_vent	=
 # Alter as needed for your system.
 export CC	= gcc
 export INSTALLPATH	= .
-export GDAL_INCLUDE_PATH = /usr/include/gdal
+#export GDAL_INCLUDE_PATH = /usr/include/gdal
+export GDAL_INCLUDE_PATH = /opt/gdal-1.11.2/include
 # export GDAL_LIB_PATH
+export GDAL_LIB_PATH = /opt/gdal-1.11.2/lib
 export BINDIR	= $(INSTALLPATH)/bin
 
 all clean check install uninstall molasses:

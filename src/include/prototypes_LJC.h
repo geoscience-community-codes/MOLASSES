@@ -142,7 +142,15 @@ double *volumeRemaining
 double *gridinfo
 */
 
-int CHECK_VENT_LOCATION(VentArr*, double*);
+/***************************
+ *  MODULE CHECK_VENT
+ *  ****************************/
+int CHECK_VENT_LOCATION(VentArr*, double*, DataCell**);
+/* args:
+ * VentArr *vent
+ * double *gridinfo
+ * DataCell **grid
+ * */
 
 int SET_FLOW_PARAMS(Inputs*, VentArr*, double*, DataCell**);
 /* args:

@@ -20,7 +20,7 @@ neighbor_$(neighbor_ID).c \
 output_$(output).c \
 set_flow_params.c \
 choose_vent_$(newvent).c \
-check_vent.c \
+check_vent$(check_vent).c \
 # activate_$(activate).c
 
 OBJ = $(SRCS:.c=.o)

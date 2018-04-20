@@ -2,7 +2,8 @@
 
 int CHECK_VENT_LOCATION(
 VentArr *vent, 
-double *gridInfo)
+double *gridInfo,
+DataCell **grid)
 {
 	int i=1, ventRow, ventCol;
   
@@ -34,5 +35,13 @@ double *gridInfo)
 							(i), ventRow, ventCol);
 		return 1;
 	}
+	else if ( grid[ventRow][ventCol].dem_elev < 0)
+	{
+		fprintf(stderr, "[CHECK_VENT]: Vent not within region covered by DEM! (below sea-level)\n");
+		fprintf(stderr, " Vent #%d at cell: [%d][%d].\n",
+							(i), ventRow, ventCol);
+		return 1;
+}
+
 	return 0;
 }

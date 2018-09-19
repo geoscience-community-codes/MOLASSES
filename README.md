@@ -6,6 +6,8 @@ MOLASSES stands for *MO*dular *LA*va *S*imulation *S*oftware for *E*arth *S*cien
 #### DESCRIPTION
 
 MOLASSES is an in-progress fluid flow simulator, written in C. 
+The MOLASSES model relies on a cellular automata algorithm to
+estimate the area inundated by lava flows.
 
 #### CODE REQUIREMENTS
 
@@ -14,6 +16,26 @@ MOLASSES is an in-progress fluid flow simulator, written in C.
 2) MOLASSES requires a DEM (Digital Elevation Model) in a format recognized by the GDAL code library. The DEM should extend beyond the boundaries of the lava flow(s). 
 
 3) MOLASSES requires a configuration file that is specified on the command line when executing the code. 
+
+#### LICENSE
+
+    Copyright (C) 2015-2020  
+    Laura Connor (lconnor@usf.edu)
+    Jacob Richardson 
+    Charles Connor
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>. 
 
 #### COMPILING and INSTALING THE CODE
 

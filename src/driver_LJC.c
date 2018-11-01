@@ -118,314 +118,318 @@ File Output type (int):
 
 int main(int argc, char *argv[]) {
 
-	DataCell **Grid = NULL;			/* data Grid */
-	Automata *CAList = NULL;		/* Active Cell list */
-	Automata NeighborList[4];		/* Each cell can have at most 4 neighbors. */
-	VentArr  Vent;						/* Source Vent structure */
-	unsigned int ActiveCounter = 0;		/* current # of Active Cells */
+DataCell **Grid = NULL;			/* data Grid */
+Automata *CAList = NULL;		/* Active Cell list */
+Automata NeighborList[4];		/* Each cell can have at most 4 neighbors. */
+VentArr  Vent;						/* Source Vent structure */
+unsigned int ActiveCounter = 0;		/* current # of Active Cells */
 	
-	Inputs In;				/* Structure to hold model inputs named in Config file */
-	Outputs Out;			/* Structure to hold model outputs named in config file */
-	int size;					/* variable used for creating seed phrase */
-	char *phrase;			/* seed phrase for random number generator */
-	int seed1;				/* random seed number */
-	int seed2;				/* random seed number */
-	int i,j, ret;  
-	unsigned int CAListSize  = 0;				/* Current size of active list, see INIT_FLOW */
-	unsigned int pulseCount  = 0;				/* Current number of Main PULSE loops */
-	double thickness;						/* thickness of lava in cell */
+Inputs In;				/* Structure to hold model inputs named in Config file */
+Outputs Out;			/* Structure to hold model outputs named in config file */
+int size;					/* variable used for creating seed phrase */
+char *phrase;			/* seed phrase for random number generator */
+int seed1;				/* random seed number */
+int seed2;				/* random seed number */
+int i,j, ret;  
+unsigned int CAListSize  = 0;				/* Current size of active list, see INIT_FLOW */
+unsigned int pulseCount  = 0;				/* Current number of Main PULSE loops */
+double thickness;						/* thickness of lava in cell */
 	
-	double DEMmetadata[6];				/* Geographic Metadata from GDAL */
-	double volumeErupted = 0;		/* Total Lava Volume in All Active Cells */
-	double volumeRemaining = 0;	/* Volume Remaining to be Erupted */
-	double total = 0;						/* Difference between volumeErupted-Vent.volumeToErupt */
+double DEMmetadata[6];				/* Geographic Metadata from GDAL */
+double volumeErupted = 0;		/* Total Lava Volume in All Active Cells */
+double volumeRemaining = 0;	/* Volume Remaining to be Erupted */
+double total = 0;						/* Difference between volumeErupted-Vent.volumeToErupt */
 
-	int run = 0;			/* Current lava flow run */ 
-	int start = 0;		/* Starting run number, from command line or 0 */
-	int endrun = 0;   /* Last lava flow run */
+int run = 0;			/* Current lava flow run */ 
+int start = 0;		/* Starting run number, from command line or 0 */
+int endrun = 0;   /* Last lava flow run */
   
-	GC_INIT();
-	startTime = time(NULL); 
-	srand(time(NULL));
-	size = (size_t)(int)(startTime + 1);
+GC_INIT();
+startTime = time(NULL); 
+srand(time(NULL));
+size = (size_t)(int)(startTime + 1);
 	
-	phrase = (char *)GC_MALLOC_ATOMIC(((size_t)size * sizeof(char)));	
-  if (phrase == NULL) {
-    fprintf(stderr, "Cannot malloc memory for seed phrase:[%s]\n", strerror(errno));
+phrase = (char *)GC_MALLOC_ATOMIC(((size_t)size * sizeof(char)));	
+if (phrase == NULL) {
+  fprintf(stderr, "Cannot malloc memory for seed phrase:[%s]\n", strerror(errno));
+  return 1;
+}
+	
+snprintf(phrase, size, "%d", (int)startTime);
+fprintf(stderr, "Seeding random number generator: %s\n", phrase);
+initialize ( );  /* Initialize the rng's */
+phrtsd ( phrase, &seed1, &seed2 ); /* Initialize all generators. */
+set_initial_seed ( seed1, seed2 );  /* Set seeds based on phrase. */
+    
+fprintf(stderr, "\n\n               MOLASSES is a lava flow simulator.\n\n");
+	
+if(argc < 2) {
+  fprintf(stderr, "Usage: %s config-filename\n",argv[0]);
+  return 1;
+}
+	
+if (argc >= 2) {
+  start = atoi(argv[2]);
+  fprintf(stderr, "Starting with run #%d\n", start);
+  if (start < 0) start = 0;
+}
+	
+fprintf(stderr, "Starting with run #%d\n", start);
+fprintf(stderr, "Beginning flow simulation...\n");	    
+In.config_file = argv[1]; 
+fprintf(stderr, "%s\n", In.config_file);
+	
+/* Initialize variables with values from the config file */
+ret = INITIALIZE(
+&In,        /* (type=Inputs*) 1D Input parameters structure  */
+&Out,       /* (type=Outputs*) 1D Output parameters structure */
+&Vent);     /* (VentArr*) Vent Structure */
+
+if(ret){
+  fprintf(stderr, "\n[MAIN]: Error flag returned from [INITIALIZE].\n");
+  fprintf(stderr, "Exiting.\n");
+  return 1;
+}
+
+/* Read in the DEM using the gdal library */
+Grid = DEM_LOADER(
+In.dem_file,	/* (type=char*)  DEM file name */
+DEMmetadata,	/* (type=double*) 1D Metadata array */
+Grid,			/* (type=DataCell**)  pointer ->2D Data Grid */
+"TOPOG");		/* (type=string) Code for topography grid */
+	                        
+if(Grid == NULL){
+  fprintf(stderr, "[MAIN]: Error returned from [DEM_LOADER]. Exiting.\n");
+  return 1;
+}
+	
+/* This is the pixel resolution. Assumes both dimensions are the same. */
+/* In.cell_size = DEMmetadata[5]; */
+	
+if(In.elev_uncert == -1) { /* user input an elevation uncertainty map*/
+  Grid = DEM_LOADER(		/* see file demloader.c) */
+  In.uncert_map,		/* (type=char*) uncertainty-grid filename*/
+  DEMmetadata, 		/* (type=double*) Metadata array */
+  Grid,    			/* (type=DataCell**)  pointer ->2D Data Grid */
+  "T_UNC");			/* (type=string) Code for elevation uncertainty */
+    
+  if(Grid == NULL){
+    fprintf(stderr, "[MAIN]: Error returned from [DEM_LOADER]. Exiting.\n");
     return 1;
   }
-  snprintf(phrase, size, "%d", (int)startTime);
-  fprintf(stderr, "Seeding random number generator: %s\n", phrase);
-  initialize ( );  /* Initialize the rng's */
-  phrtsd ( phrase, &seed1, &seed2 ); /* Initialize all generators. */
-  set_initial_seed ( seed1, seed2 );  /* Set seeds based on phrase. */
+}
+else {		/* Select uncertainty value from config file */
+  for(i=0;i<DEMmetadata[4];i++) {
+    for(j=0;j<DEMmetadata[2];j++) {
+      Grid[i][j].elev_uncert = In.elev_uncert;
+    }
+  }
+}
+	
+endrun = In.runs + start;
+for (run = start; run < endrun; run++) {
+  pulseCount = 0; /* Keeps tract of number of lava pulses per run. */
+  ActiveCounter = 0; /* Keeps track of the current number of active cells. */
+  fprintf (stderr, "RUN #%d\n\n", run);
+  fprintf (stdout, "\nRUN #%d\n", run);
+		
+  ret = SET_FLOW_PARAMS(	/* see file set_flow_params.c  */
+  &In,				/* (type=Inputs*) 1D Input parameters structure  */
+  &Vent,			/* (VentArr*) Vent Structure */
+  DEMmetadata,	/* (type=double*) Metadata array */
+  Grid);			/* (type=DataCell**)  2D Data Grid */
+		
+  /* Select new vent from spatial density grid 
+   * OR
+   * If a vent coordinate is given, then use this coordinate. 
+   */
+  if (In.spd_file != NULL) {
+    do { 
+      ret = CHOOSE_NEW_VENT(&In, &Vent);
+      if (ret) {
+        fprintf (stderr, "\n[MAIN] Error returned from [CHOOSE_NEW_VENT].\nExiting!\n");
+	return 1;
+      }
+      ret = CHECK_VENT_LOCATION(&Vent, DEMmetadata, Grid); /*Check for Vent outside of map region*/
+      if (ret) {
+        Vent.easting = 0;
+	Vent.northing = 0;
+	continue; /* select another vent location */
+      }
+    } while (!Vent.easting || !Vent.northing);
+  }
+  fprintf (stderr, "[Run: %d] Vent: EASTING: %f\tNorthing: %f\n", run, Vent.easting, Vent.northing);
+  /* Initialize the lava flow data structures and initialize vent cell. 
+   * TODO: try to figure out the maximum size possible for the active list */
+  CAList = INIT_FLOW(
+  Grid,					/* (type=DataCell**)  2D Data Grid */
+  CAList,				/* type=Automata*) 1D Active Cells List */
+  &Vent,				/* (type=VentArr*) Vent Data structure */
+  &CAListSize,		/* (type= unsigned int*)  Max size of active List */
+  &ActiveCounter,	/* (type= unsigned int*) Active list current cell count */
+  DEMmetadata);		 /* (type=double*) Metadata array */
+
+  if (CAList == NULL) { 
+    fprintf (stdout, "[MAIN] Error returned from [INIT_FLOW]. Exiting\n");
+    return 1;
+  }
+
+  fprintf(stderr, "\nRunning Flow #%d from (%d, %d)\n", run, CAList->row, CAList->col);
+  /* Initialize the remaining volume to be the volume of lava to erupt. */
+  volumeRemaining = Vent.volumeToErupt; 
+
+  /* Run the flow until the volume to erupt is exhausted. */
+  while(volumeRemaining > (double) 0.0) {
     
-	fprintf(stderr, "\n\n               MOLASSES is a lava flow simulator.\n\n");
-	
-	if(argc < 2) {
-		fprintf(stderr, "Usage: %s config-filename\n",argv[0]);
-		return 1;
-	}
-	if (argc >= 2) {
-		start = atoi(argv[2]);
-		fprintf(stderr, "Starting with run #%d\n", start);
-		if (start < 0) start = 0;
-	}
-	fprintf(stderr, "Starting with run #%d\n", start);
-	
-	fprintf(stderr, "Beginning flow simulation...\n");	    
-	In.config_file = argv[1]; 
-	fprintf(stderr, "%s\n", In.config_file);
-	
-    /* Initialize variables with values from the config file */
-	ret = INITIALIZE(
-	&In,        /* (type=Inputs*) 1D Input parameters structure  */
-	&Out,       /* (type=Outputs*) 1D Output parameters structure */
-	&Vent);     /* (VentArr*) Vent Structure */
-
-	if(ret){
-		fprintf(stderr, "\n[MAIN]: Error flag returned from [INITIALIZE].\n");
-		fprintf(stderr, "Exiting.\n");
-		return 1;
-	}
-
-	/* Read in the DEM using the gdal library */
-	Grid = DEM_LOADER(
-	In.dem_file,	/* (type=char*)  DEM file name */
-	DEMmetadata,	/* (type=double*) 1D Metadata array */
-	Grid,			/* (type=DataCell**)  pointer ->2D Data Grid */
-	"TOPOG");		/* (type=string) Code for topography grid */
-	                        
-	if(Grid == NULL){
-		fprintf(stderr, "[MAIN]: Error returned from [DEM_LOADER]. Exiting.\n");
-		return 1;
-	}
-	
-	/* This is the pixel resolution. Assumes both dimensions are the same. */
-	/* In.cell_size = DEMmetadata[5]; */
-	
-	if(In.elev_uncert == -1) { /* user input an elevation uncertainty map*/
-		Grid = DEM_LOADER(		/* see file demloader.c) */
-		In.uncert_map,		/* (type=char*) uncertainty-grid filename*/
-		DEMmetadata, 		/* (type=double*) Metadata array */
-		Grid,    			/* (type=DataCell**)  pointer ->2D Data Grid */
-		"T_UNC");			/* (type=string) Code for elevation uncertainty */
-    
-		if(Grid == NULL){
-      	fprintf(stderr, "[MAIN]: Error returned from [DEM_LOADER]. Exiting.\n");
-      	return 1;
-    	}
-	}
-	else {		/* Select uncertainty value from config file */
-		for(i=0;i<DEMmetadata[4];i++) {
-			for(j=0;j<DEMmetadata[2];j++) {
-				Grid[i][j].elev_uncert = In.elev_uncert;
-			}
-		}
-	}
-	
-	endrun = In.runs + start;
-	for (run = start; run < endrun; run++) {
-		pulseCount = 0; /* Keeps tract of number of lava pulses per run. */
-		ActiveCounter = 0; /* Keeps track of the current number of active cells. */
-		fprintf (stderr, "RUN #%d\n\n", run);
-		fprintf (stdout, "\nRUN #%d\n", run);
+    /* vent cell gets a new pulse of lava to distribute 
+     * see file: pulse.c 
+     */
+    if (!(pulseCount % 100))
+      fprintf(stderr, "[R%d]Active Cells: %-3u; Volume Remaining: %10.3f Pulse count: %3u \n",
+      run, ActiveCounter, volumeRemaining, pulseCount);
+	 		
+    PULSE(
+    CAList,				/* (type=Automata*) 1D Active Cells List */
+    &Vent,				/* (type=VentArr*) Vent Data structure */
+    Grid,					/* (type=DataCell**)  2D Data Grid */
+    &volumeRemaining,	/* (type=double) Lava volume not yet erupted */
+    DEMmetadata);		/* (type=double*) Metadata array */
 		
-		ret = SET_FLOW_PARAMS(	/* see file set_flow_params.c  */
-				&In,				/* (type=Inputs*) 1D Input parameters structure  */
-				&Vent,			/* (VentArr*) Vent Structure */
-				DEMmetadata,	/* (type=double*) Metadata array */
-				Grid);			/* (type=DataCell**)  2D Data Grid */
+    pulseCount++;
+
+    /* Distribute lava to active cells and their 8 neighbors. */
+    ret = DISTRIBUTE(
+    Grid,					/* (type=DataCell**)  2D Data Grid */
+    CAList,				/* (type=Automata*) 1D Active Cells List */
+    &CAListSize,	/* (type=unsigned int) Max size of Active list */
+    &ActiveCounter,	/* (type=unsigned int*) Active list current cell count */
+    NeighborList,  	/* (type=Automata*) 4 element list of cell-neighbors info */
+    DEMmetadata,		/* (type=double*) Metadata array */
+    &In,					/* (type=Inputs*) Inputs structure */
+    &Vent);				/* (type=VentArr*) Vent Data structure */
 		
-		/* Select new vent from spatial density grid 
- * 		   OR
- * 		   		   If a vent coordinate is given, then use this coordinate. 
- * 		   		   		*/
-		if (In.spd_file != NULL) {
-			do { 
-				ret = CHOOSE_NEW_VENT(&In, &Vent);
-				if (ret) {
-					fprintf (stderr, "\n[MAIN] Error returned from [CHOOSE_NEW_VENT].\nExiting!\n");
-					return 1;
-				}
-				ret = CHECK_VENT_LOCATION(&Vent, DEMmetadata, Grid); /*Check for Vent outside of map region*/
-				if (ret) {
-					Vent.easting = 0;
-					Vent.northing = 0;
-					continue; /* select another vent location */
-				}
-			} while (!Vent.easting || !Vent.northing);
-		}
-    fprintf (stderr, "[Run: %d] Vent: EASTING: %f\tNorthing: %f\n", run, Vent.easting, Vent.northing);
-		/* Initialize the lava flow data structures and initialize vent cell. 
- * 		   TODO: try to figure out the maximum size possible for the active list */
-		CAList = INIT_FLOW(
-		Grid,					/* (type=DataCell**)  2D Data Grid */
-		CAList,				/* type=Automata*) 1D Active Cells List */
-		&Vent,				/* (type=VentArr*) Vent Data structure */
-		&CAListSize,		/* (type= unsigned int*)  Max size of active List */
-		&ActiveCounter,	/* (type= unsigned int*) Active list current cell count */
-		DEMmetadata);		 /* (type=double*) Metadata array */
-
-		if (CAList == NULL) { 
-			fprintf (stdout, "[MAIN] Error returned from [INIT_FLOW]. Exiting\n");
-			return 1;
-		}
-
-		fprintf(stderr, "\nRunning Flow #%d from (%d, %d)\n", run, CAList->row, CAList->col);
-		/* Initialize the remaining volume to be the volume of lava to erupt. */
-		volumeRemaining = Vent.volumeToErupt; 
-
-		/* Run the flow until the volume to erupt is exhausted. */
-		while(volumeRemaining > (double) 0.0) {
-    
-			/* vent cell gets a new pulse of lava to distribute 
- * 			   see file: pulse.c 
- * 			   			*/
-			if (!(pulseCount % 100))
-				fprintf(stderr, "[R%d]Active Cells: %-3u; Volume Remaining: %10.3f Pulse count: %3u \n",
-				run,			
-				ActiveCounter,
-				volumeRemaining,
-				pulseCount);
+    if (ret) {
+      fprintf (stderr, "[MAIN} Error returned from [DISTRIBUTE].ret=%d.. ", ret);
+      if (ret < 0) { 
+        if (run > 0) {
+	  fprintf(stderr, "Starting a new run.\n");
+	  run--;
+	}
+	volumeRemaining = 0.0;
+      }
+    }
+  } /* while(volumeRemaining > (double)0.0) */
 			
-			
-			PULSE(
-			CAList,				/* (type=Automata*) 1D Active Cells List */
-			&Vent,				/* (type=VentArr*) Vent Data structure */
-			Grid,					/* (type=DataCell**)  2D Data Grid */
-			&volumeRemaining,	/* (type=double) Lava volume not yet erupted */
-			DEMmetadata);		/* (type=double*) Metadata array */
-		
-			pulseCount++;
-
-			/* Distribute lava to active cells and their 8 neighbors. */
-			ret = DISTRIBUTE(
-			Grid,					/* (type=DataCell**)  2D Data Grid */
-			CAList,				/* (type=Automata*) 1D Active Cells List */
-			&CAListSize,	/* (type=unsigned int) Max size of Active list */
-			&ActiveCounter,	/* (type=unsigned int*) Active list current cell count */
-			NeighborList,  	/* (type=Automata*) 4 element list of cell-neighbors info */
-			DEMmetadata,		/* (type=double*) Metadata array */
-			&In,					/* (type=Inputs*) Inputs structure */
-			&Vent);				/* (type=VentArr*) Vent Data structure */
-		
-			if (ret) {
-				fprintf (stderr, "[MAIN} Error returned from [DISTRIBUTE].ret=%d.. ", ret);
-				if (ret < 0) { 
-					if (run > 0) {
-					 fprintf(stderr, "Starting a new run.\n");
-					 run--;
-					}
-					volumeRemaining = 0.0;
-				}
-			}
-		} /* while(volumeRemaining > (double)0.0) */
-			
-		fprintf(stderr, "Final Distribute: %d cells inundated.\n\n", ActiveCounter);
-
-		volumeErupted = 0.0;
-		/* Sum lava volume in each active flow cell */
-		
-		for(i = 0; i < DEMmetadata[4]; i++) {
-			for(j = 0; j < DEMmetadata[2]; j++) {
-					thickness = Grid[i][j].eff_elev - Grid[i][j].dem_elev;
-					if (Grid[i][j].active > -1) Grid[i][j].hit_count++; /* Increment hit count */
-					volumeErupted += (thickness * DEMmetadata[1] * DEMmetadata[5]);
-			}
-		} 
-
-		fprintf(stdout, "Conservation of mass check\n");
-		fprintf(stdout, " Total (IN) volume pulsed from vents:   %12.3f\n", Vent.volumeToErupt);
-		fprintf(stdout, " Total (OUT) volume found in cells:     %12.3f\n\n", volumeErupted);
-
-		total = volumeErupted - Vent.volumeToErupt;
-		if(abs(total) > 1e-8) fprintf(stdout, " ERROR: MASS NOT CONSERVED! Excess: %12.3f\n", total);
-		fprintf(stdout, "----------------------------------------\n");
-		
-		/* Save the flow thickness for each run to a file */
-		ret = OUTPUT(
-		run,             /* run number */
-		ascii_flow,      /* file output type */
-		&Out,            /* (type=Outputs*) 1D Output parameters structure */
-		&In,             /* (type=Inputs*) 1D Input parameters structure */
-		Grid,            /* (type = DataCell *) Global Data Grid */ 
-		CAList,          /* (type = Automata *) Active Cells List */
-		ActiveCounter,   /* (type = unsigned int)  Number of active cells */
-		&Vent,           /* (type=VentArr*) Vent Data structure */
-		DEMmetadata);    /* (type=double*) Metadata array */ 
-		if (ret) fprintf(stdout, "OUTPUT ERROR!\n");
-		
-		if (In.flow_field) { /* reinitialize the data grid using new dem*/
-			for(i = 0; i < DEMmetadata[4]; i++) {
-				for(j = 0; j < DEMmetadata[2]; j++) {
-					Grid[i][j].dem_elev = Grid[i][j].eff_elev;
-					Grid[i][j].prev_elev = Grid[i][j].dem_elev; 
-					Grid[i][j].active = -1;
-					Grid[i][j].parentcode = 0;
-				}
-			}
-		}
-		else { /* just reinitialize the data grid for new flow */
-			for(i = 0; i < DEMmetadata[4]; i++) {
-				for(j = 0; j < DEMmetadata[2]; j++) {
-					Grid[i][j].eff_elev = Grid[i][j].dem_elev;
-					Grid[i][j].prev_elev = Grid[i][j].dem_elev; 
-					Grid[i][j].active = -1;
-					Grid[i][j].parentcode = 0;
-			 }
-			}
-		}
-	} /* END:  for (run = start; run < (In.runs+start); run++) { */	
+  fprintf(stderr, "Final Distribute: %d cells inundated.\n\n", ActiveCounter);
 	
-	ret = OUTPUT(
-		run,             /* run number */
-		ascii_hits,      /* file output type */
-		&Out,            /* (type=Outputs*) 1D Output parameters structure */
-		&In,             /* (type=Inputs*) 1D Input parameters structure */
-		Grid,            /* (type = DataCell *) Global Data Grid */ 
-		CAList,          /* (type = Automata *) Active Cells List */
-		ActiveCounter,   /* (type = unsigned int)  Number of active cells */
-		&Vent,           /* (type=VentArr*) Vent Data structure */
-		DEMmetadata);    /* (type=double*) Metadata array */ 
-	if (ret) fprintf(stdout, "Ascii hits OUTPUT ERROR!\n");
+  volumeErupted = 0.0;
 	
-	ret = OUTPUT(
-		run,             /* run number */
-		raster_hits,      /* file output type */
-		&Out,            /* (type=Outputs*) 1D Output parameters structure */
-		&In,             /* (type=Inputs*) 1D Input parameters structure */
-		Grid,            /* (type = DataCell *) Global Data Grid */ 
-		CAList,          /* (type = Automata *) Active Cells List */
-		ActiveCounter,   /* (type = unsigned int)  Number of active cells */
-		&Vent,           /* (type=VentArr*) Vent Data structure */
-		DEMmetadata);    /* (type=double*) Metadata array */ 
-	if (ret) fprintf(stdout, "Raster hits OUTPUT ERROR!\n");
-	
-	if (In.flow_field > 0) {
-		ret = OUTPUT(
-		run,             /* run number */
-		raster_post,      /* file output type */
-		&Out,            /* (type=Outputs*) 1D Output parameters structure */
-		&In,             /* (type=Inputs*) 1D Input parameters structure */
-		Grid,            /* (type = DataCell *) Global Data Grid */ 
-		CAList,          /* (type = Automata *) Active Cells List */
-		ActiveCounter,   /* (type = unsigned int)  Number of active cells */
-		&Vent,           /* (type=VentArr*) Vent Data structure */
-		DEMmetadata);    /* (type=double*) Metadata array */ 
+  /* Sum lava volume in each active flow cell */
+  for(i = 0; i < DEMmetadata[4]; i++) {
+    for(j = 0; j < DEMmetadata[2]; j++) {
+      thickness = Grid[i][j].eff_elev - Grid[i][j].dem_elev;
+      if (Grid[i][j].active > -1) Grid[i][j].hit_count++; /* Increment hit count */
+      volumeErupted += (thickness * DEMmetadata[1] * DEMmetadata[5]);
+    }
+  } 
 
-		if (ret) fprintf(stdout, "Raster post dem OUTPUT ERROR!\n");
-	}
+  fprintf(stdout, "Conservation of mass check\n");
+  fprintf(stdout, " Total (IN) volume pulsed from vents:   %12.3f\n", Vent.volumeToErupt);
+  fprintf(stdout, " Total (OUT) volume found in cells:     %12.3f\n\n", volumeErupted);
+
+  total = volumeErupted - Vent.volumeToErupt;
+  if(abs(total) > 1e-8) fprintf(stdout, " ERROR: MASS NOT CONSERVED! Excess: %12.3f\n", total);
+  fprintf(stdout, "----------------------------------------\n");
 		
-	endTime = time(NULL); /* Calculate simulation time elapsed */
-	if ((endTime - startTime) > 60) {
-		fprintf(stdout, "\n\nElapsed Time of simulation approximately %0.1f minutes.\n\n",
-		(double)(endTime - startTime)/60.0);
-	}	
-	else {
-		fprintf(stdout, "\n\nElapsed Time of simulation approximately %u seconds.\n\n",
-		(unsigned)(endTime - startTime));
-	}
-	return 0;
+  /* Save the flow thickness for each run to a file */
+  ret = OUTPUT(
+  run,             /* run number */
+  ascii_flow,      /* file output type */
+  &Out,            /* (type=Outputs*) 1D Output parameters structure */
+  &In,             /* (type=Inputs*) 1D Input parameters structure */
+  Grid,            /* (type = DataCell *) Global Data Grid */ 
+  CAList,          /* (type = Automata *) Active Cells List */
+  ActiveCounter,   /* (type = unsigned int)  Number of active cells */
+  &Vent,           /* (type=VentArr*) Vent Data structure */
+  DEMmetadata);    /* (type=double*) Metadata array */ 
+  if (ret) fprintf(stdout, "OUTPUT ERROR!\n");
+		
+  if (In.flow_field) { /* reinitialize the data grid using new dem*/
+    for(i = 0; i < DEMmetadata[4]; i++) {
+      for(j = 0; j < DEMmetadata[2]; j++) {
+	Grid[i][j].dem_elev = Grid[i][j].eff_elev;
+	Grid[i][j].prev_elev = Grid[i][j].dem_elev; 
+	Grid[i][j].active = -1;
+	Grid[i][j].parentcode = 0;
+      }
+    }
+  }
+  else { /* just reinitialize the data grid for new flow */
+    for(i = 0; i < DEMmetadata[4]; i++) {
+      for(j = 0; j < DEMmetadata[2]; j++) {
+	Grid[i][j].eff_elev = Grid[i][j].dem_elev;
+	Grid[i][j].prev_elev = Grid[i][j].dem_elev; 
+	Grid[i][j].active = -1;
+	Grid[i][j].parentcode = 0;
+      }
+    }
+  }
+} /* END:  for (run = start; run < (In.runs+start); run++) { */	
+
+if (strlen(Out.ascii_hits_file) > 2) {
+  ret = OUTPUT(
+  run,             /* run number */
+  ascii_hits,      /* file output type */
+  &Out,            /* (type=Outputs*) 1D Output parameters structure */
+  &In,             /* (type=Inputs*) 1D Input parameters structure */
+  Grid,            /* (type = DataCell *) Global Data Grid */ 
+  CAList,          /* (type = Automata *) Active Cells List */
+  ActiveCounter,   /* (type = unsigned int)  Number of active cells */
+  &Vent,           /* (type=VentArr*) Vent Data structure */
+  DEMmetadata);    /* (type=double*) Metadata array */ 
+  
+  if (ret) fprintf(stdout, "Ascii hits OUTPUT ERROR!\n");
+}
+
+if (strlen(Out.raster_hits_file) > 2) {
+  ret = OUTPUT(
+  run,             /* run number */
+  raster_hits,      /* file output type */
+  &Out,            /* (type=Outputs*) 1D Output parameters structure */
+  &In,             /* (type=Inputs*) 1D Input parameters structure */
+  Grid,            /* (type = DataCell *) Global Data Grid */ 
+  CAList,          /* (type = Automata *) Active Cells List */
+  ActiveCounter,   /* (type = unsigned int)  Number of active cells */
+  &Vent,           /* (type=VentArr*) Vent Data structure */
+  DEMmetadata);    /* (type=double*) Metadata array */ 
+  
+  if (ret) fprintf(stdout, "Raster hits OUTPUT ERROR!\n");
+}
+	
+if (In.flow_field > 0 && strlen(Out.raster_post_dem_file) > 2) {
+  ret = OUTPUT(
+  run,             /* run number */
+  raster_post,      /* file output type */
+  &Out,            /* (type=Outputs*) 1D Output parameters structure */
+  &In,             /* (type=Inputs*) 1D Input parameters structure */
+  Grid,            /* (type = DataCell *) Global Data Grid */ 
+  CAList,          /* (type = Automata *) Active Cells List */
+  ActiveCounter,   /* (type = unsigned int)  Number of active cells */
+  &Vent,           /* (type=VentArr*) Vent Data structure */
+  DEMmetadata);    /* (type=double*) Metadata array */ 
+
+  if (ret) fprintf(stdout, "Raster post dem OUTPUT ERROR!\n");
+}
+		
+endTime = time(NULL); /* Calculate simulation time elapsed */
+if ((endTime - startTime) > 60) {
+  fprintf(stdout, "\n\nElapsed Time of simulation approximately %0.1f minutes.\n\n",
+  (double)(endTime - startTime)/60.0);
+}	
+else {
+  fprintf(stdout, "\n\nElapsed Time of simulation approximately %u seconds.\n\n",
+  (unsigned)(endTime - startTime));
+}
+return 0;
 }
 

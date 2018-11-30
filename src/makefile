@@ -33,19 +33,18 @@ else
 	LIBS = -L$(GDAL_LIB_PATH) -lgdal -L../lib -lgc -lran -lm
 endif
 
-SRCS = driver_$(driver).c \
+SRCS = main_$(driver).c \
 initialize_$(initialize).c \
 demloader_$(DEM_loader).c \
 arrayinit_$(arrayinit).c \
 initflow_$(initflow).c \
 pulse_$(pulse).c \
 distribute_$(distribute).c \
-neighbor_$(neighbor_ID).c \
-output_$(output).c \
+neighbors_$(neighbor_ID).c \
+outputs_$(output).c \
 set_flow_params.c \
 choose_vent_$(newvent).c \
 check_vent$(check_vent).c \
-# activate_$(activate).c
 
 OBJ = $(SRCS:.c=.o)
 
@@ -60,7 +59,7 @@ $(MAIN): $(OBJ)
 %.o : %.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<  -o $@
 
-$(OBJ): include/structs_LJC.h include/prototypes_LJC.h
+$(OBJ): include/structures.h include/prototypes.h
 
 .PHONY:	clean install
 

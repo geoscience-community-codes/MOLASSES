@@ -36,8 +36,8 @@ endif
 SRCS = driver_$(driver).c \
 initialize_$(initialize).c \
 demloader_$(DEM_loader).c \
-arrayinit_$(array_initializer).c \
-initflow_$(flow_initializer).c \
+arrayinit_$(arrayinit).c \
+initflow_$(initflow).c \
 pulse_$(pulse).c \
 distribute_$(distribute).c \
 neighbor_$(neighbor_ID).c \
@@ -73,4 +73,3 @@ install:
 
 uninstall:
 	-rm $(BINDIR)/$(MAIN) &>/dev/null
-

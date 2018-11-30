@@ -26,18 +26,17 @@
 
 #MODULES: Alter as needed. 
 #Check docs/ for module codes and destriptions.
-export driver            = LJC
-export initialize        = LJC
-export DEM_loader        = LJC
-export array_initializer = LJC
-export flow_initializer  = LJC
-export pulse             = LJC
-export distribute        = proportional2slope2_LJC
-export neighbor_ID       = 4.0_LJC
-export output            = LJC
-export newvent       = LJC
+export driver		= 
+export initialize	= 
+export DEM_loader	= 
+export array_init 	= 
+export initflow  	=
+export pulse		=
+export distribute	= proportional2slope
+export neighbor_ID	= 8
+export output		=
+export newvent		=
 export check_vent	=
-# export activate          = LJC
 
 # Linking and compiling variables
 # Alter as needed for your system.

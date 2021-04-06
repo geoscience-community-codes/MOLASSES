@@ -1,9 +1,15 @@
 #### NAME
 **External library programs used by MOLASSES**
 
+#### RNGLIB - A Package of Random Number Generators (RNG's) with Splitting Facilities
+
+MOLASSES uses RNGLIB, a C library which implements random number generators (RNG's) which can generate one or more streams of random numbers (https://people.sc.fsu.edu/~jburkardt/c_src/rnglib/rnglib.html)
+
+To rebuild the library, follow the directions in the README file in the rnglib directory.
+
 #### The Boehm-Demers-Weiser Conservative Garbage Collector (GC)
 
-MOLASSES uses the memory management software GC (http://www.hboehm.info/gc/). 
+MOLASSES uses the memory management software GC (http://www.hboehm.info/gc/). Many linux distributions offer precompiled versions of this library. This is the easiest solution.
 
 The development version of the GC source code now resides on github, along with the downloadable packages. The GC tree itself is at https://github.com/ivmai/bdwgc/. The libatomic_ops tree required by the GC is at https://github.com/ivmai/libatomic_ops/.
 
@@ -19,10 +25,6 @@ automake --add-missing
 ./configure
 make
 
-This will require that you have C and C++ toolchains, git, automake, autoconf, and libtool already installed. The resulting libraries and header files are then stored in MOLASSES/lib and MOLLASSES/include respectively.
+This will require that you have C and C++ toolchains, git, automake, autoconf, and libtool already installed. The resulting libraries and header files can then be stored in MOLASSES/lib and MOLLASSES/include respectively.
 
-#### RNGLIB - A Package of Random Number Generators (RNG's) with Splitting Facilities
 
-MOLASSES uses RNGLIB, a C library which implements random number generators (RNG's) which can generate one or more streams of random numbers (https://people.sc.fsu.edu/~jburkardt/c_src/rnglib/rnglib.html)
-
-To rebuild the library, follow the directions in the README file in the rnglib directory.

@@ -1,4 +1,4 @@
-/*############################################################################
+############################################################################
 # MOLASSES (MOdular LAva Simulation Software for the Earth Sciences) 
 # The MOLASSES model relies on a cellular automata algorithm to 
 # estimate the area inundated by lava flows.
@@ -20,7 +20,7 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-###########################################################################*/ 
+###########################################################################
 
 # CFLAGS = -Wall -pedantic -g Wno-long-long
 CFLAGS = -Wall -O2 -pthread

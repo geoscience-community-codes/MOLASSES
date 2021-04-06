@@ -303,7 +303,7 @@ int main(int argc, char *argv[]) {
 			CAList->row = (ActiveFlow.source+current_vent)->row;
 			CAList->col = (ActiveFlow.source+current_vent)->col;
 			
-			/*if (!(pulseCount % 100))*/
+			if (!(pulseCount % 100))
 				fprintf(stdout, "[R%d]Vent: %6.0f %6.0f; Active Cells: %-3u; Volume Remaining: %10.3f Pulse count: %3u \n",
 				run,	
 				(ActiveFlow.source+current_vent)->easting,

@@ -25,7 +25,10 @@
 # CFLAGS = -Wall -pedantic -g Wno-long-long
 CFLAGS = -Wall -O2 -pthread
 INCLUDES = -I$(GDAL_INCLUDE_PATH) -I../include -I./include
-# LIBS = -L$(GDAL_LIB_PATH) -lgdal -L../lib -lgc -lran -lm
+# If you compile the gc libraries rather than installing a precompiled version
+# into the system, you may need to modify the LIBS variable to indicate
+# where you put the -lgc library and include files. Notice the include and lib
+# directories in the top level folder.
 # If you set a specific path for your GDAL libraries, this will look for it!
 ifndef GDAL_LIB_PATH
 	LIBS = -lgdal -lgc -L../lib -lpthread -lran -lm

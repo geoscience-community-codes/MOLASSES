@@ -13,6 +13,10 @@ estimate the area inundated by lava flows.
 
 1) MOLASSES requires the GDAL C libraries and a C compiler. GDAL libraries and development files are available for many systems (http://trac.osgeo.org/gdal/wiki/DownloadingGdalBinaries); install both the gdal library and the header (development) files. We have tested this program on computers that use the C compiler gcc.
 
+2) MOLASSES requires the memory management software GC (http://www.hboehm.info/gc/). Install both library (lib) and header files (dev). See the [readme](/external_files/readme/) file in the external_files directory for additional info.
+
+3) MOLASSES requires RNGLIB, a C library which implements random number generators (https://people.sc.fsu.edu/~jburkardt/c_src/rnglib/rnglib.html). Also, See the [readme](/external_files/readme/) file in the external_files directory for additional info.
+
 2) MOLASSES requires a DEM (Digital Elevation Model) in a format recognized by the GDAL code library. The DEM should extend beyond the boundaries of the lava flow(s). 
 
 3) MOLASSES requires a configuration file that is specified on the command line when executing the code. 

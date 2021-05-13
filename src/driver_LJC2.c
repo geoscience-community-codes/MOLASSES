@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
 	
 	Inputs In;				/* Structure to hold model inputs named in Config file */
 	Outputs Out;			/* Structure to hold model outputs named in config file */
-	int size;					/* variable used for creating seed phrase */
+	int size = 25;					/* variable used for creating seed phrase */
 	char *phrase;			/* seed phrase for random number generator */
 	int seed1;				/* random seed number */
 	int seed2;				/* random seed number */
@@ -150,7 +150,6 @@ int main(int argc, char *argv[]) {
 	GC_INIT();
 	startTime = time(NULL); 
 	srand(time(NULL));
-	size = (size_t)(int)(startTime + 1);
 	
 	phrase = (char *)GC_MALLOC_ATOMIC(((size_t)size * sizeof(char)));	
   if (phrase == NULL) {

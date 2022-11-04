@@ -54,14 +54,14 @@ To compile and install MOLASSES execute the following commands:
 		make
 		make install
 
-'make' compiles the code; 'make install' copies the code to a 'bin' (program) directory specified in the top-level makefile.
+'make' compiles the code; 'make install' copies the code to a 'bin' directory specified in the top-level makefile.
 
 #### PROGRAM EXECUTION
 
 To run molasses type:
 
-	$PATH_TO_MOLASSES/$molasses $config_file
+	$molasses $config_file
 
-where $PATH_TO_MOLASSES indicates where the executable code is located, $molasses indicates the exact name of the compiled code, and $config_file indicates the name of the configuration file. It is most convenient if the configuration file resides in your working directory. 
+where $molasses indicates the exact name of the compiled code, and $config_file indicates the name of the configuration file. It is most convenient if the configuration file resides in your working directory. 
 
 	

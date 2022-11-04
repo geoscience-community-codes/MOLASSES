@@ -22,7 +22,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################*/ 
 
-#include "include/prototypes_LJC2.h"
+#include "include/prototypes_LJC3.h"
 
 /*DISTRIBUTE_PROPORTIONAL2SLOPE_LJC
 		Determine how much lava to share between neighbors PROPORTIONAL to elevation difference
@@ -78,8 +78,8 @@ Appends a cell to the Update List with Global Data Grid info
 int DISTRIBUTE( 
 DataCell **grid,
 ActiveList *activeList,
-unsigned int *CAListSize,
-unsigned int *activeCount,
+int *CAListSize,
+int *activeCount,
 Neighbor *activeNeighbor,
 double *gridinfo,
 Inputs *in
@@ -101,7 +101,7 @@ Inputs *in
  
 	*activeCount = 1;
 	do { /* for all active cells */
-	  
+		  
 		myResidual = grid[(activeList+ct)->row][(activeList+ct)->col].residual;
 		thickness = grid[(activeList+ct)->row][(activeList+ct)->col].eff_elev 
 		          - grid[(activeList+ct)->row][(activeList+ct)->col].dem_elev;
@@ -183,7 +183,9 @@ Inputs *in
 						exit(1);
 				}
 					
-				/* Distribute lava to neighbor */			
+				/* Distribute lava to neighbor */	
+				if (grid[(activeNeighbor+n)->row][(activeNeighbor+n)->col].aoi) return 2;		
+						
 				grid[(activeNeighbor+n)->row][(activeNeighbor+n)->col].eff_elev += lavaIn;
 				
 				myResidual = grid[(activeNeighbor+n)->row][(activeNeighbor+n)->col].residual;
@@ -206,10 +208,12 @@ Inputs *in
 					 (activeList + *activeCount)->col = (activeNeighbor+n)->col;
            /*(activeList + *activeCount)->excess = 1;*/
 					 grid[(activeNeighbor+n)->row][(activeNeighbor+n)->col].active = *activeCount;
-					 *activeCount += 1;				
+					 *activeCount += 1;	
+					 
+					 	
 						
 						if (*activeCount == *CAListSize) { /* resize active list if more space is needed */
-							fprintf (stderr, 
+							fprintf (stdout, 
 							"Number of cells = %u; active list out of memory (%u) reallocation happening .....\n", 
 							*activeCount, *CAListSize);
 							*CAListSize *= 2;

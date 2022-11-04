@@ -22,7 +22,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################*/ 
 
-#include "include/prototypes_LJC2.h"
+#include "include/prototypes_LJC3.h"
 #define SQRT2 (sqrt(2))
 #define DIAGONAL_DISTANCE(x,y) (sqrt(((x)*(x))+((y)*(y))))
 #define NORMALIZE_DISTANCE(x,y) ((x)/(y))

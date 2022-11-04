@@ -21,7 +21,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################*/ 
-#include "include/prototypes_LJC2.h"
+#include "include/prototypes_LJC3.h"
 
 int CHECK_VENT_LOCATION(
 Vent *vent, 

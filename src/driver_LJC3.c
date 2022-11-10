@@ -243,6 +243,7 @@ int main(int argc, char *argv[]) {
 	  stats.event_id = ev;
 	  stats.run = 0;
 	  stats.hit = 0;
+	  stats.off_map = 0;
 	  stats.cells_inundated = 0;
 	  stats.pulse_count = 0;
 	  stats.volume_erupted = 0;
@@ -253,6 +254,8 @@ int main(int argc, char *argv[]) {
 	  stats.pulse = 0;
 	  stats.vent_count = 0;	
 	  stats.vents = NULL;
+	  stats.aoi = NULL;
+	  stats.dem_data = NULL;
 	  
 	  // Load first event into Active_flow structure */
 	  fprintf(stdout, "[%d-of-%d] Events\n", ev, In.num_events);
@@ -340,6 +343,8 @@ int main(int argc, char *argv[]) {
         stats.pulse = ActiveFlow.pulsevolume;
         stats.vent_count = ActiveFlow.num_vents;
         stats.vents = ActiveFlow.source;
+        stats.aoi = In.aoi;
+        stats.dem_data = DEMmetadata;
        
 		     /* Run the flow until the volume to erupt is exhausted. */
 		     
@@ -388,9 +393,13 @@ int main(int argc, char *argv[]) {
 					    break;
 					      
 				      case -1:
+				        stats.off_map = 1;
 				      case -2:
+				        stats.off_map = 1;
 				      case -3:
+				        stats.off_map = 1;
 				      case -4: 
+				        stats.off_map = 1;
 				      case 1:
 				      default:
 				        fprintf(stderr, "[MAIN] Error returned from DISTRIBUTE[%d]\n", ret);

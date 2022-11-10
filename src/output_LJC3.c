@@ -246,10 +246,10 @@ FlowStats *stats) {
 			}
 			/* Write some stats to file */
 			/* Print file header */
-			if (!run) fprintf (out, "\nEvent,Runtime(s),Hit,Volume(km^3),Volume-Erupted(km^3),Cells-Inundated,Area-Inundated(km^2),Pulse-volume(m^3),Residual(m),Vents\n");
+			if (!run) fprintf (out, "\nEvent,Runtime(s),CellSize(m),Hit,OffMap,MaxVolume(km^3),VolumeErupted(km^3),CellsInundated,AreaInundated(km^2),PulseVolume(m^3),ResidualThickness(m),SiteE(m),SiteN(m),SiteRadius(m),VentE(m),VentN(m)\n");
 		  /* Print out data for this flow event */
-			fprintf(out, "%d,%ld,%d,%0.2f,%0.2f,%d,%0.2f,%0.2f,%0.1f",
-			        stats->event_id, stats->runtime, stats->hit,
+			fprintf(out, "%d,%ld,%g,%d,%d,%g,%g,%d,%g,%g,%g",
+			        stats->event_id, stats->runtime, stats->dem_data[1], stats->hit, stats->off_map,
 			        stats->total_volume/1e9,
 			        stats->volume_erupted/1e9,
 			        stats->cells_inundated,
@@ -257,8 +257,16 @@ FlowStats *stats) {
 			        stats->pulse, 
 			        stats->residual
 			         ); 
+			 if (stats->aoi != NULL) 
+			   fprintf(out, ",%.0lf,%.0lf,%g", 
+			        stats->aoi->easting,
+			        stats->aoi->northing,
+			        stats->aoi->radius);
+			 else
+			   fprintf(out, ",,,");
+			   
 			 for (i = 0; i < active_flow->num_vents; i++) {
-				fprintf(out, ",%0.0f,%0.0f", (active_flow->source+i)->easting, (active_flow->source+i)->northing);
+				fprintf(out, ",%.0lf,%.0lf", (active_flow->source+i)->easting, (active_flow->source+i)->northing);
 			}       
 			fprintf(out, "\n");
 			raster_double_file = 0;

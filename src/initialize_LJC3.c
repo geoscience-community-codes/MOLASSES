@@ -159,7 +159,7 @@ int INITIALIZE(
 	while (fgets(line, maxLineLength, ConfigFile) != NULL) 
 	{
 		/*if first character is comment, new line, space, return to next line*/
-		if (line[0] == '#' || line[0] == '\n' || line[0] == ' ') continue;
+		if (line[0] == '#' || line[0] == '\n' || line[0] == ' ' || line[0] == '/') continue;
 		
 		/*print incoming parameter*/
 		strcpy(var, "");
@@ -401,7 +401,7 @@ int INITIALIZE(
 		    fprintf(stderr, "\n[INITIALIZE]: Unable to read value for AOI_NORTHING\n");
 				return 1;
 		  }
-		} /* AOI easting */
+		} /* AOI northing */
 		
 		else if (!strncmp(var, "AOI_RADIUS", strlen("AOI_RADIUS"))) {
 		  if (In->aoi == NULL) {
@@ -417,7 +417,7 @@ int INITIALIZE(
 		    fprintf(stderr, "\n[INITIALIZE]: Unable to read value for AOI_RADIUS\n");
 				return 1;
 		  }
-		} /* AOI easting */
+		} /* AOI radius */
 		
 		else if (strlen(var) > 2) {
 			fprintf (stdout, "[not assigned]\n");

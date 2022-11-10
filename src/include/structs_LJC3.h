@@ -142,6 +142,7 @@ typedef struct FlowStats {
   int event_id;
 	int run;
 	int hit;
+	int off_map;
 	int cells_inundated;
 	int pulse_count;
 	double volume_erupted;
@@ -152,6 +153,8 @@ typedef struct FlowStats {
 	double pulse;
 	int vent_count;	
 	Vent *vents;
+	AOI *aoi;
+	double *dem_data; 
 } FlowStats;
 
 

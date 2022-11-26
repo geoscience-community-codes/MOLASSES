@@ -23,6 +23,8 @@
 ###########################################################################*/ 
 
 #include "include/prototypes_LJC3.h"
+#include <sys/stat.h>
+#include <sys/types.h>
 #define MAXLEN 25
 /*****************************
 MODULE: OUTPUT
@@ -153,7 +155,7 @@ FlowStats *stats) {
 			sprintf (file, "hits_%s-%d", Id, run);
 			out = fopen(file, "w");
 			if (out == NULL) {
-				fprintf(stderr, "Cannot open hits file: file=[%s]:[%s]! Exiting.\n",
+				fprintf(stderr, "C:annot open hits file: file=[%s]:[%s]! Exiting.\n",
 	              file, strerror(errno));
 	    	return 1;
 			}
@@ -237,7 +239,15 @@ FlowStats *stats) {
 		break;
 		
 		case stats_file :
-		  sprintf(file, "stats_%s", Id);
+		  if (mkdir("stats", 0755)) {
+			  if (errno != EEXIST) {
+				  fprintf(stderr, "Cannot create stats file=[%s]:[%s]! Exiting.\n",
+                                          file, strerror(errno));
+				  return 1;
+			  }
+		  }
+
+		  sprintf(file, "stats/stats_%s", Id);
 		  out = fopen(file, "a");
 		  if (out == NULL) {
 				fprintf(stderr, "Cannot open stats file=[%s]:[%s]! Exiting.\n",

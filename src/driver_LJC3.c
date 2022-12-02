@@ -261,7 +261,7 @@ int main(int argc, char *argv[]) {
 	  fprintf(stdout, "[%d-of-%d] Events\n", ev, In.num_events);
 	  
 	  ActiveFlow.source = CHOOSE_NEW_VENT(&In, ev, &ActiveFlow.num_vents);
-	  if ((ActiveFlow.source+ev) == NULL) {
+	  if ((ActiveFlow.source) == NULL) {
 	    fprintf (stderr, "Error returned from [CHOOSE NEW VENT]. Exiting.\n");
 	    return 1;
 	  }

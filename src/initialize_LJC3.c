@@ -429,7 +429,7 @@ int INITIALIZE(
 
 	/*Check for missing parameters*/
 	fprintf(stderr, "Checking for missing parameters ....\n");
-	if (In->events_file == NULL) {
+	if (strlen(In->events_file) < 1) {
 	  fprintf (stderr, "\nERROR [INITIALIZE]: No file of events assigned. Unable to continue.\n");
 	  return 1;
 	} /* missing events file */
